@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logik-Quiz: Was passt nicht?</title>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instruction {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            border-left: 5px solid var(--secondary-blue);
+            line-height: 1.4;
+        }
+
+        .task-card {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .task-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+            color: #555;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .word-btn {
+            background: white;
+            border: 2px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .word-btn:hover {
+            border-color: var(--secondary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .word-btn.correct {
+            background-color: var(--success-green) !important;
+            border-color: var(--success-green) !important;
+            color: white;
+        }
+
+        .word-btn.wrong {
+            background-color: var(--error-red) !important;
+            border-color: var(--error-red) !important;
+            color: white;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--success-green);
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .btn-reset { background-color: #95a5a6; }
+        .btn-solve { background-color: var(--secondary-blue); }
+
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Was passt nicht?</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> In jeder Gruppe von vier Wörtern passt eines grammatikalisch nicht zum Rest. 
+        Überlege, ob man <strong>в</strong> oder <strong>на</strong> verwendet. Klicke auf das Wort, das aus der Reihe tanzt!
+    </div>
+
+    <div id="quiz-container">
+        <!-- Aufgaben werden per JS geladen -->
+    </div>
+</div>
+
+<script>
+    const puzzles = [
+        {
+            id: 1,
+            words: [
+                { text: "футбол", prep: "в" },
+                { text: "теннис", prep: "в" },
+                { text: "скрипка", prep: "на" },
+                { text: "волейбол", prep: "в" }
+            ],
+            reason: "скрипка (на), alle anderen в (Sport)."
+        },
+        {
+            id: 2,
+            words: [
+                { text: "гитара", prep: "на" },
+                { text: "пианино", prep: "на" },
+                { text: "шахматы", prep: "в" },
+                { text: "труба", prep: "на" }
+            ],
+            reason: "шахматы (в), alle anderen на (Instrumente)."
+        },
+        {
+            id: 3,
+            words: [
+                { text: "баскетбол", prep: "в" },
+                { text: "хоккей", prep: "в" },
+                { text: "гольф", prep: "в" },
+                { text: "саксофон", prep: "на" }
+            ],
+            reason: "саксофон (на), alle anderen в (Sport)."
+        },
+        {
+            id: 4,
+            words: [
+                { text: "флейта", prep: "на" },
+                { text: "барабаны", prep: "на" },
+                { text: "карты", prep: "в" },
+                { text: "арфа", prep: "на" }
+            ],
+            reason: "карты (в), alle anderen на (Instrumente)."
+        },
+        {
+            id: 5,
+            words: [
+                { text: "шашки", prep: "в" },
+                { text: "домино", prep: "в" },
+                { text: "лото", prep: "в" },
+                { text: "компьютер", prep: "на" }
+            ],
+            reason: "компьютер (на), alle anderen в (Spiele)."
+        },
+        {
+            id: 6,
+            words: [
+                { text: "укулеле", prep: "на" },
+                { text: "орган", prep: "на" },
+                { text: "виолончель", prep: "на" },
+                { text: "прятки", prep: "в" }
+            ],
+            reason: "прятки (в), alle anderen на (Instrumente)."
+        },
+        {
+            id: 7,
+            words: [
+                { text: "бейсбол", prep: "в" },
+                { text: "покер", prep: "в" },
+                { text: "рояль", prep: "на" },
+                { text: "бадминтон", prep: "в" }
+            ],
+            reason: "рояль (на), alle anderen в (Sport/Spiele)."
+        },
+        {
+            id: 8,
+            words: [
+                { text: "телефон", prep: "на" },
+                { text: "планшет", prep: "на" },
+                { text: "бильярд", prep: "в" },
+                { text: "приставка", prep: "на" }
+            ],
+            reason: "бильярд (в), alle anderen на (Geräte)."
+        },
+        {
+            id: 9,
+            words: [
+                { text: "скрипка", prep: "на" },
+                { text: "кларнет", prep: "на" },
+                { text: "футбол", prep: "в" },
+                { text: "балалайка", prep: "на" }
+            ],
+            reason: "футбол (в), alle anderen на (Instrumente)."
+        },
+        {
+            id: 10,
+            words: [
+                { text: "Монополия", prep: "в" },
+                { text: "Мафия", prep: "в" },
+                { text: "Уно", prep: "в" },
+                { text: "тромбон", prep: "на" }
+            ],
+            reason: "тромбон (на), alle anderen в (Spiele)."
+        }
+    ];
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        puzzles.forEach(puzzle => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${puzzle.id}`;
+
+            const shuffledWords = shuffle([...puzzle.words]);
+
+            card.innerHTML = `
+                <span class="task-header">Gruppe ${puzzle.id}:</span>
+                <div class="options-grid">
+                    ${shuffledWords.map(word => `
+                        <button class="word-btn" 
+                                onclick="checkChoice(${puzzle.id}, '${word.prep}', this)"
+                                data-prep="${word.prep}">
+                            ${word.text}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="explanation" id="exp-${puzzle.id}">Lösung: ${puzzle.reason}</div>
+                <div class="controls">
+                    <button class="btn btn-reset" onclick="resetTask(${puzzle.id})">Reset</button>
+                    <button class="btn btn-solve" onclick="solveTask(${puzzle.id})">Lösung</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.checkChoice = function(puzzleId, prep, btn) {
+        const puzzle = puzzles.find(p => p.id === puzzleId);
+        
+        // Finde heraus, welche Präposition die Mehrheit hat
+        const counts = {};
+        puzzle.words.forEach(w => counts[w.prep] = (counts[w.prep] || 0) + 1);
+        const majorityPrep = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+
+        const card = document.getElementById(`card-${puzzleId}`);
+        const buttons = card.querySelectorAll('.word-btn');
+        const exp = document.getElementById(`exp-${puzzleId}`);
+
+        // Alles zurücksetzen für diese Karte
+        buttons.forEach(b => b.className = 'word-btn');
+
+        if (prep !== majorityPrep) {
+            // Richtig! Das ist der Außenseiter
+            btn.classList.add('correct');
+            exp.style.display = "block";
+        } else {
+            // Falsch! Das gehört zur Mehrheit
+            btn.classList.add('wrong');
+            exp.style.display = "none";
+        }
+    }
+
+    window.resetTask = function(id) {
+        const card = document.getElementById(`card-${id}`);
+        const buttons = card.querySelectorAll('.word-btn');
+        const exp = document.getElementById(`exp-${id}`);
+        buttons.forEach(b => b.className = 'word-btn');
+        exp.style.display = "none";
+    }
+
+    window.solveTask = function(id) {
+        const puzzle = puzzles.find(p => p.id === id);
+        const card = document.getElementById(`card-${id}`);
+        const buttons = card.querySelectorAll('.word-btn');
+        const exp = document.getElementById(`exp-${id}`);
+
+        // Bestimme Mehrheit
+        const counts = {};
+        puzzle.words.forEach(w => counts[w.prep] = (counts[w.prep] || 0) + 1);
+        const majorityPrep = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+
+        buttons.forEach(b => {
+            b.className = 'word-btn';
+            if (b.getAttribute('data-prep') !== majorityPrep) {
+                b.classList.add('correct');
+            }
+        });
+        exp.style.display = "block";
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>

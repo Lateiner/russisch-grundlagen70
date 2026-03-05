@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio-Quiz (10 Aufgaben): играть</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+        }
+
+        .instruction {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            border-left: 5px solid var(--secondary-blue);
+        }
+
+        .voice-info {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Quiz Card Layout */
+        .quiz-card {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .play-btn {
+            background-color: var(--secondary-blue);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .play-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .option:hover {
+            border-color: var(--secondary-blue);
+            background-color: #f0f7ff;
+        }
+
+        .option.correct {
+            border-color: var(--success-green) !important;
+            background-color: #d4edda !important;
+        }
+
+        .option.wrong {
+            border-color: var(--error-red) !important;
+            background-color: #f8d7da !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-reset {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            background-color: #e67e22;
+        }
+
+        @media (max-width: 500px) {
+            .option { font-size: 2rem; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Audio-Quiz: Was hörst du?</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> Höre dir den Satz an und klicke auf das passende Bild. Achte genau auf die Präpositionen <strong>в</strong> (Sport/Spiel) und <strong>на</strong> (Instrument/Gerät).
+    </div>
+
+    <div id="voice-status" class="voice-info">Suche russische Stimme...</div>
+
+    <div id="quiz-area">
+        <!-- JS generiert hier die Fragen -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="window.location.reload()">Quiz neu starten</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { id: 1, text: "Я играю на гитаре.", correct: "🎸", distractors: ["⚽", "🎹"] },
+        { id: 2, text: "Мы играем в футбол.", correct: "⚽", distractors: ["🎻", "♟️"] },
+        { id: 3, text: "Они играют в шахматы.", correct: "♟️", distractors: ["🎸", "💻"] },
+        { id: 4, text: "Ты играешь на пианино.", correct: "🎹", distractors: ["🎾", "🃏"] },
+        { id: 5, text: "Оna играет на скрипке.", correct: "🎻", distractors: ["🎷", "⚽"] },
+        { id: 6, text: "Вы играете в теннис.", correct: "🎾", distractors: ["🎸", "♟️"] },
+        { id: 7, text: "Антон играет на компьютере.", correct: "💻", distractors: ["⚽", "🃏"] },
+        { id: 8, text: "Мы играем в карты.", correct: "🃏", distractors: ["🎻", "🎷"] },
+        { id: 9, text: "Брат играет на саксофоне.", correct: "🎷", distractors: ["🎹", "🎾"] },
+        { id: 10, text: "Дети играют в прятки.", correct: "🙈", distractors: ["🎸", "💻"] }
+    ];
+
+    const synth = window.speechSynthesis;
+    let selectedVoice = null;
+
+    function getRussianVoice() {
+        const voices = synth.getVoices();
+        const russianVoices = voices.filter(v => v.lang.includes('ru'));
+        
+        // Suche nach männlichen Namen in der Stimmenliste
+        const maleNames = ['Pavel', 'Maxim', 'Yuri', 'Aleksandr', 'Male', 'Dmitry'];
+        let maleVoice = russianVoices.find(v => maleNames.some(name => v.name.includes(name)));
+        
+        selectedVoice = maleVoice || russianVoices[0];
+
+        const status = document.getElementById('voice-status');
+        if (selectedVoice) {
+            status.textContent = `Aktive Stimme: ${selectedVoice.name} ${maleVoice ? '(Männlich)' : '(Systemstandard)'}`;
+        } else {
+            status.textContent = "Keine russische Stimme gefunden. Bitte russisches Sprachpaket im Browser/System aktivieren.";
+        }
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = getRussianVoice;
+    }
+    getRussianVoice();
+
+    function speak(text) {
+        if (synth.speaking) synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.voice = selectedVoice;
+        utter.lang = 'ru-RU';
+        utter.rate = 0.85; // Leicht verlangsamt für besseres Verständnis
+        utter.pitch = 1.0; 
+        synth.speak(utter);
+    }
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-area');
+        questions.forEach((q) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            
+            const options = shuffle([q.correct, ...q.distractors]);
+
+            card.innerHTML = `
+                <button class="play-btn" onclick="speak('${q.text}')">
+                    <span>▶ Satz anhören</span>
+                </button>
+                <div class="options-container" id="options-${q.id}">
+                    ${options.map(emoji => `
+                        <div class="option" onclick="checkAnswer(${q.id}, '${emoji}', this)">${emoji}</div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.checkAnswer = function(id, selectedEmoji, element) {
+        const question = questions.find(q => q.id === id);
+        const container = document.getElementById(`options-${id}`);
+        const allOptions = container.querySelectorAll('.option');
+
+        allOptions.forEach(opt => opt.className = 'option');
+
+        if (selectedEmoji === question.correct) {
+            element.classList.add('correct');
+        } else {
+            element.classList.add('wrong');
+            allOptions.forEach(opt => {
+                if (opt.textContent === question.correct) opt.classList.add('correct');
+            });
+        }
+    };
+
+    initQuiz();
+</script>
+
+</body>
+</html>

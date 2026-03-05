@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profi-Satzbau: играть (на vs. в)</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+            --distractor-color: #e67e22;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: var(--primary-dark);
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+        }
+
+        .instruction {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            border-left: 5px solid var(--distractor-color);
+        }
+
+        .task-unit {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            transition: all 0.3s ease;
+        }
+
+        .task-unit.correct {
+            border-color: var(--success-green);
+            background-color: #f0fdf4;
+        }
+
+        .task-unit.wrong {
+            border-color: var(--error-red);
+            background-color: #fef2f2;
+        }
+
+        .sentence-label {
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: block;
+            color: #555;
+            font-size: 1rem;
+        }
+
+        .word-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 55px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .pool {
+            background: #f1f3f5;
+            border: 1px dashed #ced4da;
+        }
+
+        .target {
+            background: #fff;
+            border: 2px solid #dee2e6;
+        }
+
+        .word-btn {
+            background: var(--white);
+            border: 1px solid var(--primary-dark);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 1.05rem;
+        }
+
+        .word-btn:hover {
+            background: var(--secondary-blue);
+            color: white;
+            border-color: var(--secondary-blue);
+        }
+
+        .word-btn.used {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .feedback-msg {
+            font-weight: bold;
+            height: 24px;
+            margin-top: 5px;
+            text-align: right;
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        button.action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.1s;
+        }
+
+        .btn-reset { background-color: #95a5a6; }
+        .btn-solve { background-color: var(--secondary-blue); }
+        button.action-btn:active { transform: scale(0.95); }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .word-btn { padding: 8px 12px; font-size: 0.95rem; }
+            .task-unit { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>играть: на oder в?</h1>
+    
+    <div class="instruction">
+        <strong>Challenge:</strong> In jedem Pool gibt es ein Wort zu viel (**на** oder **в**). 
+        Wähle die richtige Präposition aus und bilde den Satz. 
+        <br><em>Klicke Wörter unten an zum Hinzufügen, klicke sie oben an zum Entfernen.</em>
+    </div>
+
+    <div id="puzzles-container"></div>
+</div>
+
+<script>
+    const sentences = [
+        { id: 1, target: ["Я", "играю", "на", "гитаре"], distractor: "в", translation: "Ich spiele Gitarre." },
+        { id: 2, target: ["Мы", "играем", "в", "теннис"], distractor: "на", translation: "Wir spielen Tennis." },
+        { id: 3, target: ["Она", "играет", "на", "пианино"], distractor: "в", translation: "Sie spielt Klavier." },
+        { id: 4, target: ["Дети", "играют", "в", "прятки"], distractor: "на", translation: "Die Kinder spielen Verstecken." },
+        { id: 5, target: ["Антон", "играет", "на", "компьютере"], distractor: "в", translation: "Anton spielt am Computer." },
+        { id: 6, target: ["Вы", "играете", "в", "шахматы", "?"], distractor: "на", translation: "Spielt ihr Schach?" },
+        { id: 7, target: ["Брат", "играет", "на", "саксофоне"], distractor: "в", translation: "Der Bruder spielt Saxophon." },
+        { id: 8, target: ["Они", "играют", "в", "карты"], distractor: "на", translation: "Sie spielen Karten." },
+        { id: 9, target: ["Ты", "играешь", "на", "флейте", "?"], distractor: "в", translation: "Spielst du Flöte?" },
+        { id: 10, target: ["Мы", "играем", "в", "баскетбол"], distractor: "на", translation: "Wir spielen Basketball." }
+    ];
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function init() {
+        const container = document.getElementById('puzzles-container');
+        sentences.forEach(s => {
+            const poolWords = shuffle([...s.target, s.distractor]);
+            const html = `
+                <div class="task-unit" id="task-${s.id}">
+                    <span class="sentence-label">${s.id}. ${s.translation}</span>
+                    <div class="word-area target" id="target-${s.id}"></div>
+                    <div class="word-area pool" id="pool-${s.id}">
+                        ${poolWords.map((word, i) => `
+                            <div class="word-btn" data-idx="${i}" onclick="addWord(${s.id}, this)">${word}</div>
+                        `).join('')}
+                    </div>
+                    <div class="feedback-msg" id="feedback-${s.id}"></div>
+                    <div class="controls">
+                        <button class="action-btn btn-reset" onclick="resetPuzzle(${s.id})">Reset</button>
+                        <button class="action-btn btn-solve" onclick="solvePuzzle(${s.id})">Lösung</button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    window.addWord = function(id, btn) {
+        const target = document.getElementById(`target-${id}`);
+        const unit = document.getElementById(`task-${id}`);
+        
+        // Wort oben erstellen
+        const word = document.createElement('div');
+        word.className = 'word-btn';
+        word.textContent = btn.textContent;
+        word.dataset.poolIdx = btn.dataset.idx;
+        
+        word.onclick = function() {
+            const original = document.querySelector(`#pool-${id} [data-idx="${this.dataset.poolIdx}"]`);
+            original.classList.remove('used');
+            this.remove();
+            check(id);
+        };
+
+        target.appendChild(word);
+        btn.classList.add('used');
+        check(id);
+    };
+
+    function check(id) {
+        const s = sentences.find(x => x.id === id);
+        const target = document.getElementById(`target-${id}`);
+        const feedback = document.getElementById(`feedback-${id}`);
+        const unit = document.getElementById(`task-${id}`);
+        const current = Array.from(target.children).map(c => c.textContent);
+
+        unit.className = "task-unit";
+        feedback.textContent = "";
+
+        // Check erst, wenn die Anzahl der Wörter der Ziel-Satzlänge entspricht
+        if (current.length === s.target.length) {
+            if (JSON.stringify(current) === JSON.stringify(s.target)) {
+                unit.classList.add('correct');
+                feedback.textContent = "Richtig! ✓";
+                feedback.style.color = "var(--success-green)";
+            } else {
+                unit.classList.add('wrong');
+                feedback.textContent = "Falsch oder falsche Präposition.";
+                feedback.style.color = "var(--error-red)";
+            }
+        } else if (current.length > s.target.length) {
+            unit.classList.add('wrong');
+            feedback.textContent = "Zu viele Wörter!";
+            feedback.style.color = "var(--error-red)";
+        }
+    }
+
+    window.resetPuzzle = function(id) {
+        document.getElementById(`target-${id}`).innerHTML = "";
+        document.querySelectorAll(`#pool-${id} .word-btn`).forEach(b => b.classList.remove('used'));
+        const unit = document.getElementById(`task-${id}`);
+        unit.className = "task-unit";
+        document.getElementById(`feedback-${id}`).textContent = "";
+    };
+
+    window.solvePuzzle = function(id) {
+        const s = sentences.find(x => x.id === id);
+        resetPuzzle(id);
+        const target = document.getElementById(`target-${id}`);
+        s.target.forEach(w => {
+            const word = document.createElement('div');
+            word.className = 'word-btn';
+            word.textContent = w;
+            target.appendChild(word);
+        });
+        document.querySelectorAll(`#pool-${id} .word-btn`).forEach(b => {
+            if (s.target.includes(b.textContent) && !b.classList.contains('used')) {
+                // Markiere nur die genutzten Wörter als "used" (vereinfacht)
+                b.classList.add('used');
+            }
+        });
+        check(id);
+    };
+
+    init();
+</script>
+
+</body>
+</html>

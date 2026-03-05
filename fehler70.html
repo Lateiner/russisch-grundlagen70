@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fehlerteufel: играть на vs. в</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: var(--primary-dark);
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instruction {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            border-left: 5px solid var(--secondary-blue);
+            line-height: 1.4;
+        }
+
+        .task-card {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            transition: transform 0.2s;
+        }
+
+        .sentence-display {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .word {
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .word:hover {
+            background-color: #eee;
+            border-color: #ccc;
+        }
+
+        /* Feedback-Zustände für Wörter */
+        .word.correct-selection {
+            background-color: var(--success-green) !important;
+            color: white !important;
+        }
+
+        .word.wrong-selection {
+            background-color: var(--error-red) !important;
+            color: white !important;
+        }
+
+        .translation {
+            font-style: normal;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .btn-correct-status {
+            padding: 8px 16px;
+            border: 2px solid var(--secondary-blue);
+            background: transparent;
+            color: var(--secondary-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-correct-status.clicked-correct {
+            background-color: var(--success-green);
+            border-color: var(--success-green);
+            color: white;
+        }
+
+        .btn-correct-status.clicked-wrong {
+            background-color: var(--error-red);
+            border-color: var(--error-red);
+            color: white;
+        }
+
+        .feedback-area {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        button.action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .btn-reset { background-color: #95a5a6; }
+        .btn-solve { background-color: var(--secondary-blue); }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .sentence-display { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Fehlerteufel: Findest du den Fehler?</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> Untersuche die Sätze. 
+        <br>1. Wenn du glaubst, der Satz ist <strong>komplett richtig</strong>, klicke auf die Schaltfläche „Satz ist richtig“.
+        <br>2. Wenn du einen <strong>Fehler</strong> vermutest, klicke direkt auf das <strong>falsche Wort</strong> im Satz.
+    </div>
+
+    <div id="tasks-container"></div>
+</div>
+
+<script>
+    const taskData = [
+        { id: 1, sentence: ["Я", "играю", "в", "футбол", "."], isCorrect: true, errorIdx: -1, explanation: "Richtig: Sportarten erfordern „в“." },
+        { id: 2, sentence: ["Он", "играет", "в", "пианино", "."], isCorrect: false, errorIdx: 2, explanation: "Falsch: Instrumente erfordern „на“." },
+        { id: 3, sentence: ["Мы", "играем", "на", "гитаре", "."], isCorrect: true, errorIdx: -1, explanation: "Richtig: Instrumente erfordern „на“." },
+        { id: 4, sentence: ["Ты", "играешь", "на", "теннис", "?"], isCorrect: false, errorIdx: 2, explanation: "Falsch: Sportarten erfordern „в“." },
+        { id: 5, sentence: ["Дети", "играют", "в", "шахматы", "."], isCorrect: true, errorIdx: -1, explanation: "Richtig: Spiele erfordern „в“." },
+        { id: 6, sentence: ["Она", "играет", "на", "скрипку", "."], isCorrect: false, errorIdx: 3, explanation: "Falsch: Nach „на“ folgt der Präpositional (скрипке)." },
+        { id: 7, sentence: ["Вы", "играете", "в", "волейбол", "."], isCorrect: true, errorIdx: -1, explanation: "Richtig: Sportarten erfordern „в“." },
+        { id: 8, sentence: ["Брат", "играет", "на", "компьютере", "."], isCorrect: true, errorIdx: -1, explanation: "Richtig: Das Gerät erfordert „на“." },
+        { id: 9, sentence: ["Они", "играют", "в", "саксофоне", "."], isCorrect: false, errorIdx: 2, explanation: "Falsch: Instrumente erfordern „на“." },
+        { id: 10, sentence: ["Бабушка", "играет", "на", "карты", "."], isCorrect: false, errorIdx: 2, explanation: "Falsch: Kartenspiele erfordern „в“." }
+    ];
+
+    function init() {
+        const container = document.getElementById('tasks-container');
+        taskData.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${task.id}`;
+            
+            card.innerHTML = `
+                <div class="sentence-display" id="display-${task.id}">
+                    ${task.sentence.map((word, idx) => `
+                        <span class="word" onclick="checkWord(${task.id}, ${idx}, this)">${word}</span>
+                    `).join('')}
+                </div>
+                <button class="btn-correct-status" id="btn-correct-${task.id}" onclick="checkCorrectStatus(${task.id})">Satz ist richtig</button>
+                <div class="feedback-area" id="feedback-${task.id}"></div>
+                <div class="controls">
+                    <button class="action-btn btn-reset" onclick="resetTask(${task.id})">Reset</button>
+                    <button class="action-btn btn-solve" onclick="solveTask(${task.id})">Lösung</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.checkWord = function(taskId, wordIdx, element) {
+        const task = taskData.find(t => t.id === taskId);
+        const feedback = document.getElementById(`feedback-${taskId}`);
+        const btnCorrect = document.getElementById(`btn-correct-${taskId}`);
+        
+        // Reset previous feedback in words
+        const words = document.querySelectorAll(`#display-${taskId} .word`);
+        words.forEach(w => w.className = 'word');
+        btnCorrect.className = 'btn-correct-status';
+
+        if (!task.isCorrect && wordIdx === task.errorIdx) {
+            element.classList.add('correct-selection');
+            feedback.innerHTML = `<span style="color: var(--success-green)">Richtig gefunden!</span> ${task.explanation}`;
+        } else {
+            element.classList.add('wrong-selection');
+            feedback.innerHTML = `<span style="color: var(--error-red)">Das ist kein Fehler.</span>`;
+        }
+    }
+
+    window.checkCorrectStatus = function(taskId) {
+        const task = taskData.find(t => t.id === taskId);
+        const feedback = document.getElementById(`feedback-${taskId}`);
+        const btnCorrect = document.getElementById(`btn-correct-${taskId}`);
+        
+        // Reset previous feedback in words
+        const words = document.querySelectorAll(`#display-${taskId} .word`);
+        words.forEach(w => w.className = 'word');
+
+        if (task.isCorrect) {
+            btnCorrect.className = 'btn-correct-status clicked-correct';
+            feedback.innerHTML = `<span style="color: var(--success-green)">Stimmt!</span> ${task.explanation}`;
+        } else {
+            btnCorrect.className = 'btn-correct-status clicked-wrong';
+            feedback.innerHTML = `<span style="color: var(--error-red)">Leider nein.</span> Dieser Satz enthält einen Fehler.`;
+        }
+    }
+
+    window.resetTask = function(taskId) {
+        const feedback = document.getElementById(`feedback-${taskId}`);
+        const btnCorrect = document.getElementById(`btn-correct-${taskId}`);
+        const words = document.querySelectorAll(`#display-${taskId} .word`);
+        
+        words.forEach(w => w.className = 'word');
+        btnCorrect.className = 'btn-correct-status';
+        feedback.innerHTML = "";
+    }
+
+    window.solveTask = function(taskId) {
+        const task = taskData.find(t => t.id === taskId);
+        const feedback = document.getElementById(`feedback-${taskId}`);
+        const btnCorrect = document.getElementById(`btn-correct-${taskId}`);
+        const words = document.querySelectorAll(`#display-${taskId} .word`);
+
+        resetTask(taskId);
+
+        if (task.isCorrect) {
+            btnCorrect.className = 'btn-correct-status clicked-correct';
+            feedback.innerHTML = `Lösung: Dieser Satz ist korrekt.`;
+        } else {
+            words[task.errorIdx].classList.add('correct-selection');
+            feedback.innerHTML = `Lösung: Das Wort „${task.sentence[task.errorIdx]}“ ist falsch. <br>${task.explanation}`;
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>

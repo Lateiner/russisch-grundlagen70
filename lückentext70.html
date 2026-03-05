@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endungs-Training: играть на vs. в</title>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instruction {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            border-left: 5px solid var(--secondary-blue);
+            line-height: 1.4;
+        }
+
+        .task-card {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sentence {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        select {
+            padding: 5px 10px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        /* Feedback-Farben */
+        select.correct {
+            border-color: var(--success-green);
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        select.wrong {
+            border-color: var(--error-red);
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #95a5a6; }
+        .btn-solve { background-color: var(--secondary-blue); }
+        .btn:hover { opacity: 0.8; }
+
+        @media (max-width: 600px) {
+            .sentence { font-size: 1rem; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Endungs-Training</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> Wähle die richtige Endung für das Substantiv aus. 
+        <br>Denke daran: 
+        <br>• Nach <strong>на</strong> folgt meist der Präpositional (Wo? / Auf was?).
+        <br>• Nach <strong>в</strong> folgt bei Spielen der Akkusativ (Was?).
+    </div>
+
+    <div id="quiz-container">
+        <!-- Aufgaben werden per JS generiert -->
+    </div>
+</div>
+
+<script>
+    const tasks = [
+        { id: 1, textPre: "Я играю на гитар", options: ["е", "у", "ы"], correct: "е", hint: "на + Präpositional (f)" },
+        { id: 2, textPre: "Мы играем в футбол", options: ["е", "у", "ø"], correct: "ø", hint: "в + Akkusativ (m, unbelebt)" },
+        { id: 3, textPre: "Она играет на скрипк", options: ["е", "и", "у"], correct: "е", hint: "на + Präpositional (f)" },
+        { id: 4, textPre: "Дети играют в шахмат", options: ["е", "ы", "ам"], correct: "ы", hint: "в + Akkusativ (Plural)" },
+        { id: 5, textPre: "Ты играешь на флейт", options: ["е", "ы", "у"], correct: "е", hint: "на + Präpositional (f)" },
+        { id: 6, textPre: "Он играет в теннис", options: ["а", "е", "ø"], correct: "ø", hint: "в + Akkusativ (m)" },
+        { id: 7, textPre: "Вы играете на барабан", options: ["ы", "ах", "ов"], correct: "ах", hint: "на + Präpositional (Plural)" },
+        { id: 8, textPre: "Мы играем в Монополи", options: ["ю", "и", "я"], correct: "ю", hint: "в + Akkusativ (-ия -> -ию)" },
+        { id: 9, textPre: "Антон играет на компьютер", options: ["е", "у", "ø"], correct: "е", hint: "на + Präpositional (m)" },
+        { id: 10, textPre: "Они играют в карт", options: ["е", "ы", "ах"], correct: "ы", hint: "в + Akkusativ (Plural)" },
+        { id: 11, textPre: "Она хорошо играет на пианин", options: ["е", "о", "у"], correct: "о", hint: "Fremdwort (unveränderlich)" },
+        { id: 12, textPre: "Я играю в хоккей", options: ["ю", "е", "ø"], correct: "ø", hint: "в + Akkusativ (m)" },
+        { id: 13, textPre: "Брат играет на саксофон", options: ["е", "а", "у"], correct: "е", hint: "на + Präpositional (m)" },
+        { id: 14, textPre: "Дети играют в рядк", options: ["и", "ах", "е"], correct: "и", hint: "в прятки (feststehend)" },
+        { id: 15, textPre: "Ты играешь на балалайк", options: ["и", "е", "у"], correct: "е", hint: "на + Präpositional (f)" }
+    ];
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${task.id}`;
+
+            card.innerHTML = `
+                <div class="sentence">
+                    ${task.textPre}<select id="select-${task.id}" onchange="checkAnswer(${task.id})">
+                        <option value="">...</option>
+                        ${task.options.map(opt => `<option value="${opt}">${opt === 'ø' ? '(keine)' : opt}</option>`).join('')}
+                    </select>.
+                </div>
+                <div class="controls">
+                    <button class="btn btn-reset" onclick="resetTask(${task.id})">Zurücksetzen</button>
+                    <button class="btn btn-solve" onclick="solveTask(${task.id})">Lösung</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.checkAnswer = function(id) {
+        const select = document.getElementById(`select-${id}`);
+        const task = tasks.find(t => t.id === id);
+
+        if (select.value === "") {
+            select.className = "";
+        } else if (select.value === task.correct) {
+            select.className = "correct";
+        } else {
+            select.className = "wrong";
+        }
+    };
+
+    window.resetTask = function(id) {
+        const select = document.getElementById(`select-${id}`);
+        select.value = "";
+        select.className = "";
+    };
+
+    window.solveTask = function(id) {
+        const select = document.getElementById(`select-${id}`);
+        const task = tasks.find(t => t.id === id);
+        select.value = task.correct;
+        select.className = "correct";
+    };
+
+    initQuiz();
+</script>
+
+</body>
+</html>

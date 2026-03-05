@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russische Grammatik: Das Verb играть</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .explanation {
+            background: #eef2f7;
+            padding: 20px;
+            border-left: 5px solid var(--secondary-color);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .task-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #95a5a6; color: white; }
+        .btn-solve { background-color: var(--secondary-color); color: white; }
+
+        button:hover { opacity: 0.8; }
+
+        select {
+            padding: 5px;
+            font-size: 1rem;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        /* Feedback-Klassen */
+        .correct { border-color: var(--success-color) !important; background-color: #d4edda !important; color: #155724 !important; }
+        .wrong { border-color: var(--error-color) !important; background-color: #f8d7da !important; color: #721c24 !important; }
+
+        /* Drag and Drop Styles */
+        .drag-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            min-height: 50px;
+            padding: 10px;
+            border: 1px dashed #bbb;
+            border-radius: 8px;
+        }
+
+        .draggable {
+            padding: 8px 12px;
+            background: #34495e;
+            color: white;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .drop-zone {
+            min-height: 60px;
+            min-width: 200px;
+            background: #eee;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+        }
+
+        .solution-text {
+            display: none;
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            background: #fff;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sprachassistent Russisch</h1>
+    <h2>Grundlagen: Die Verwendung des Verbs играть</h2>
+
+    <div class="explanation">
+        <h3>Kurz-Anleitung</h3>
+        <p>Das russische Verb <strong>играть</strong> wird je nach Kontext mit unterschiedlichen Präpositionen verwendet:</p>
+        <ul>
+            <li><strong>играть на + Präpositional:</strong> Für Musikinstrumente. (z. B. на гитаре)</li>
+            <li><strong>играть в + Akkusativ:</strong> Für Sportarten und Spiele. (z. B. в футбол)</li>
+            <li><strong>Besonderheit:</strong> Man spielt <strong>на</strong> (auf) einem Gerät (Handy/Computer), aber <strong>в</strong> (in) ein Spiel.</li>
+        </ul>
+        <p>Die Endungen ändern sich: Bei <strong>на</strong> meist zu <strong>-е</strong>, bei <strong>в</strong> bleiben männliche Sportarten oft unverändert.</p>
+    </div>
+
+    <!-- Teil 1: 1-5 Präpositionen -->
+    <h3>Teil 1: Die richtige Präposition (Direkt-Feedback)</h3>
+    <div id="group-1">
+        <div class="task-card" data-id="t1">
+            <p>1. Я играю <select onchange="instantCheck(this)" data-ans="на"><option value="">--?</option><option value="в">в</option><option value="на">на</option></select> гитаре.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t1')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t1')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t2">
+            <p>2. Мы играем <select onchange="instantCheck(this)" data-ans="в"><option value="">--?</option><option value="в">в</option><option value="на">на</option></select> теннис.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t2')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t2')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t3">
+            <p>3. Ты играешь <select onchange="instantCheck(this)" data-ans="на"><option value="">--?</option><option value="в">в</option><option value="на">на</option></select> пианино?</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t3')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t3')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t4">
+            <p>4. Дети играют <select onchange="instantCheck(this)" data-ans="в"><option value="">--?</option><option value="в">в</option><option value="на">на</option></select> шахматы.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t4')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t4')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t5">
+            <p>5. Он любит играть <select onchange="instantCheck(this)" data-ans="на"><option value="">--?</option><option value="в">в</option><option value="на">на</option></select> компьютере.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t5')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t5')">Lösung</button></div>
+        </div>
+    </div>
+
+    <!-- Teil 2: 6-10 Drag & Drop -->
+    <h3>Teil 2: Kategorisierung (Ziehe die Wörter in die Zonen)</h3>
+    <div class="task-card" id="drag-area">
+        <p>Ziehe die Begriffe in die richtige Gruppe:</p>
+        <div class="drag-container" id="source-zone" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <div class="draggable" draggable="true" id="d6" data-cat="v" ondragstart="drag(event)">футбол</div>
+            <div class="draggable" draggable="true" id="d7" data-cat="na" ondragstart="drag(event)">скрипка</div>
+            <div class="draggable" draggable="true" id="d8" data-cat="v" ondragstart="drag(event)">хоккей</div>
+            <div class="draggable" draggable="true" id="d9" data-cat="na" ondragstart="drag(event)">барабаны</div>
+            <div class="draggable" draggable="true" id="d10" data-cat="v" ondragstart="drag(event)">карты</div>
+        </div>
+        
+        <strong>Группа В (Sport/Spiel):</strong>
+        <div class="drop-zone" id="zone-v" data-accept="v" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        
+        <strong>Группа НА (Instrumente):</strong>
+        <div class="drop-zone" id="zone-na" data-accept="na" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetDrag()">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDrag()">Lösung</button>
+        </div>
+    </div>
+
+    <!-- Teil 3: 11-15 Endungen -->
+    <h3>Teil 3: Die richtige Endung</h3>
+    <div id="group-3">
+        <div class="task-card" data-id="t11">
+            <p>11. играть на гитар<select onchange="instantCheck(this)" data-ans="е"><option value="">?</option><option value="у">у</option><option value="е">е</option></select></p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t11')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t11')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t12">
+            <p>12. играть в волейбол<select onchange="instantCheck(this)" data-ans="ø"><option value="">?</option><option value="ø"> (keine)</option><option value="е">е</option></select></p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t12')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t12')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t13">
+            <p>13. играть на флейт<select onchange="instantCheck(this)" data-ans="е"><option value="">?</option><option value="е">е</option><option value="ы">ы</option></select></p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t13')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t13')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t14">
+            <p>14. играть в Монополи<select onchange="instantCheck(this)" data-ans="ю"><option value="">?</option><option value="и">и</option><option value="ю">ю</option></select></p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t14')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t14')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t15">
+            <p>15. играть на саксофон<select onchange="instantCheck(this)" data-ans="е"><option value="">?</option><option value="е">е</option><option value="а">а</option></select></p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t15')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t15')">Lösung</button></div>
+        </div>
+    </div>
+
+    <!-- Teil 4: 16-20 Konjugation -->
+    <h3>Teil 4: Wer spielt? (Konjugation)</h3>
+    <div id="group-4">
+        <div class="task-card" data-id="t16">
+            <p>16. Я <select onchange="instantCheck(this)" data-ans="играю"><option value="">--?</option><option value="играю">играю</option><option value="играет">играет</option></select> на труbe.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t16')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t16')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t17">
+            <p>17. Вы <select onchange="instantCheck(this)" data-ans="играете"><option value="">--?</option><option value="играем">играем</option><option value="играете">играете</option></select> в футбол?</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t17')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t17')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t18">
+            <p>18. Антон <select onchange="instantCheck(this)" data-ans="играет"><option value="">--?</option><option value="играет">играет</option><option value="играют">играют</option></select> в покер.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t18')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t18')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t19">
+            <p>19. Мы <select onchange="instantCheck(this)" data-ans="играем"><option value="">--?</option><option value="играю">играю</option><option value="играем">играем</option></select> в прятки.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t19')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t19')">Lösung</button></div>
+        </div>
+        <div class="task-card" data-id="t20">
+            <p>20. Они <select onchange="instantCheck(this)" data-ans="играют"><option value="">--?</option><option value="играете">играете</option><option value="играют">играют</option></select> на гитаре.</p>
+            <div class="controls"><button class="btn-reset" onclick="resetSelectTask('t20')">Zurücksetzen</button><button class="btn-solve" onclick="solveSelectTask('t20')">Lösung</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Allgemeines Feedback für Dropdowns ---
+    function instantCheck(el) {
+        if (el.value === "") {
+            el.className = "";
+        } else if (el.value === el.getAttribute('data-ans')) {
+            el.className = "correct";
+        } else {
+            el.className = "wrong";
+        }
+    }
+
+    function resetSelectTask(id) {
+        const card = document.querySelector(`[data-id="${id}"]`);
+        const sel = card.querySelector('select');
+        sel.value = "";
+        sel.className = "";
+    }
+
+    function solveSelectTask(id) {
+        const card = document.querySelector(`[data-id="${id}"]`);
+        const sel = card.querySelector('select');
+        sel.value = sel.getAttribute('data-ans');
+        sel.className = "correct";
+    }
+
+    // --- Drag & Drop Logik ---
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("text");
+        const el = document.getElementById(data);
+        const targetZone = ev.target.closest('.drop-zone') || ev.target.closest('.drag-container');
+        
+        targetZone.appendChild(el);
+        
+        // Sofort-Feedback beim Ablegen
+        if (targetZone.classList.contains('drop-zone')) {
+            const accept = targetZone.getAttribute('data-accept');
+            const itemCat = el.getAttribute('data-cat');
+            if (itemCat === accept) {
+                el.style.backgroundColor = "var(--success-color)";
+            } else {
+                el.style.backgroundColor = "var(--error-color)";
+            }
+        } else {
+            // Zurück in die Startbox
+            el.style.backgroundColor = "#34495e";
+        }
+    }
+
+    function resetDrag() {
+        const source = document.getElementById('source-zone');
+        const items = document.querySelectorAll('.draggable');
+        items.forEach(item => {
+            source.appendChild(item);
+            item.style.backgroundColor = "#34495e";
+        });
+    }
+
+    function solveDrag() {
+        const zoneV = document.getElementById('zone-v');
+        const zoneNa = document.getElementById('zone-na');
+        const items = document.querySelectorAll('.draggable');
+        
+        items.forEach(item => {
+            if (item.getAttribute('data-cat') === 'v') {
+                zoneV.appendChild(item);
+            } else {
+                zoneNa.appendChild(item);
+            }
+            item.style.backgroundColor = "var(--success-color)";
+        });
+    }
+</script>
+
+</body>
+</html>

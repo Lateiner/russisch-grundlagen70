@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bild-Zuordnung: играть на vs. в</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-dark);
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+            font-size: 1.6rem;
+        }
+
+        .instruction {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--secondary-blue);
+            font-size: 0.95rem;
+        }
+
+        /* Grid für die Aufgaben */
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .quiz-card {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .emoji-display {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            user-select: none;
+        }
+
+        .options-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-btn {
+            background: var(--white);
+            border: 2px solid #dee2e6;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Styles */
+        .option-btn.correct {
+            background-color: var(--success-green) !important;
+            border-color: var(--success-green) !important;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-red) !important;
+            border-color: var(--error-red) !important;
+            color: white;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-reset { background-color: #95a5a6; }
+        .btn-solve { background-color: var(--secondary-blue); }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .emoji-display { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Vokabel-Check: Was machen sie?</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> Schau dir das Bild (Emoji) an und wähle die dazu passende russische Phrase aus. Achte besonders auf die richtige Präposition <strong>на</strong> oder <strong>в</strong>!
+    </div>
+
+    <div class="quiz-grid" id="quiz-container">
+        <!-- JS generiert hier die Karten -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-action btn-reset" onclick="resetAll()">Alles zurücksetzen</button>
+        <button class="btn-action btn-solve" onclick="solveAll()">Lösungen zeigen</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { id: 1, emoji: "⚽", options: ["играть на футболе", "играть в футбол", "играть на гитаре"], correct: 1 },
+        { id: 2, emoji: "🎸", options: ["играть на гитаре", "играть в гитару", "играть в футбол"], correct: 0 },
+        { id: 3, emoji: "🎾", options: ["играть на теннисе", "играть на гитаре", "играть в теннис"], correct: 2 },
+        { id: 4, emoji: "🎹", options: ["играть на пианино", "играть в пианино", "играть в шахматы"], correct: 0 },
+        { id: 5, emoji: "♟️", options: ["играть на шахматах", "играть в шахматы", "играть в футбол"], correct: 1 },
+        { id: 6, emoji: "🎻", options: ["играть в скрипку", "играть на скрипке", "играть на скрипку"], correct: 1 },
+        { id: 7, emoji: "🏀", options: ["играть на баскетболе", "играть в баскетбол", "играть в карты"], correct: 1 },
+        { id: 8, emoji: "🥁", options: ["играть на барабанах", "играть в барабаны", "играть на гитаре"], correct: 0 },
+        { id: 9, emoji: "🃏", options: ["играть на картах", "играть в карты", "играть в футбол"], correct: 1 },
+        { id: 10, emoji: "💻", options: ["играть в компьютере", "играть на компьютере", "играть на шахматы"], correct: 1 }
+    ];
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        quizData.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            card.innerHTML = `
+                <div class="emoji-display">${item.emoji}</div>
+                <div class="options-container" id="options-${item.id}">
+                    ${item.options.map((opt, i) => `
+                        <div class="option-btn" onclick="checkAnswer(${item.id}, ${i}, this)">${opt}</div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.checkAnswer = function(quizId, selectedIdx, element) {
+        const item = quizData.find(q => q.id === quizId);
+        const optionsContainer = document.getElementById(`options-${quizId}`);
+        const buttons = optionsContainer.querySelectorAll('.option-btn');
+
+        // Reset buttons in this card
+        buttons.forEach(btn => btn.className = 'option-btn');
+
+        if (selectedIdx === item.correct) {
+            element.classList.add('correct');
+        } else {
+            element.classList.add('wrong');
+            // Zeige auch die richtige Antwort dezent an
+            buttons[item.correct].classList.add('correct');
+        }
+    };
+
+    window.resetAll = function() {
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.className = 'option-btn');
+    };
+
+    window.solveAll = function() {
+        quizData.forEach(item => {
+            const optionsContainer = document.getElementById(`options-${item.id}`);
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            buttons.forEach((btn, i) => {
+                btn.className = 'option-btn';
+                if (i === item.correct) {
+                    btn.classList.add('correct');
+                }
+            });
+        });
+    };
+
+    initQuiz();
+</script>
+
+</body>
+</html>

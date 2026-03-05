@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat-Simulation: играть (10 Aufgaben)</title>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --bg-light: #f0f2f5;
+            --white: #ffffff;
+            --chat-friend: #e4e6eb;
+            --chat-user: #0084ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--secondary-blue);
+            padding-bottom: 10px;
+        }
+
+        .instruction {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            border-left: 5px solid #ffc107;
+            line-height: 1.4;
+        }
+
+        .chat-window {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 35px;
+            padding: 15px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+        }
+
+        .chat-header {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-bubble {
+            max-width: 85%;
+            padding: 10px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .bubble-friend {
+            align-self: flex-start;
+            background-color: var(--chat-friend);
+            color: black;
+            border-bottom-left-radius: 4px;
+        }
+
+        .options-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .option-btn {
+            background-color: var(--white);
+            border: 2px solid var(--secondary-blue);
+            color: var(--secondary-blue);
+            padding: 10px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: right;
+            transition: all 0.2s;
+            align-self: flex-end;
+            width: fit-content;
+            max-width: 90%;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback Styles */
+        .option-btn.correct {
+            background-color: var(--success-green) !important;
+            border-color: var(--success-green) !important;
+            color: white !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-red) !important;
+            border-color: var(--error-red) !important;
+            color: white !important;
+        }
+
+        .feedback-text {
+            font-size: 0.8rem;
+            text-align: right;
+            margin-top: 6px;
+            font-weight: bold;
+            display: none;
+            padding: 0 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .btn-reset {
+            padding: 12px 24px;
+            border: none;
+            background: var(--primary-dark);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            .chat-bubble { font-size: 0.85rem; }
+            .option-btn { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Chat-Simulation: spielen</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> Deine Freunde schreiben dir. Wähle die grammatikalisch richtige Antwort aus (на oder в). 
+        <br><em>Achtung: Instrumente und Geräte nutzen „на“, Sport und Spiele nutzen „в“.</em>
+    </div>
+
+    <div id="chats-container">
+        <!-- 1 -->
+        <div class="chat-window" id="chat-1">
+            <div class="chat-header">Dialog 1</div>
+            <div class="chat-bubble bubble-friend">Привет! Что делаешь? ⚽</div>
+            <div class="options-area" id="options-1">
+                <button class="option-btn" onclick="checkChat(1, this, true)">Привет! Я играю в футбол.</button>
+                <button class="option-btn" onclick="checkChat(1, this, false)">Привет! Я играю на футболе.</button>
+            </div>
+            <div class="feedback-text" id="fb-1">Richtig! Sportarten erfordern „в“ + Akkusativ.</div>
+        </div>
+
+        <!-- 2 -->
+        <div class="chat-window" id="chat-2">
+            <div class="chat-header">Dialog 2</div>
+            <div class="chat-bubble bubble-friend">Какой красивый звук! Ты играешь на чём-то? 🎻</div>
+            <div class="options-area" id="options-2">
+                <button class="option-btn" onclick="checkChat(2, this, false)">Да, я играю в скрипку.</button>
+                <button class="option-btn" onclick="checkChat(2, this, true)">Да, я играю на скрипке.</button>
+            </div>
+            <div class="feedback-text" id="fb-2">Richtig! Instrumente erfordern „на“ + Präpositional.</div>
+        </div>
+
+        <!-- 3 -->
+        <div class="chat-window" id="chat-3">
+            <div class="chat-header">Dialog 3</div>
+            <div class="chat-bubble bubble-friend">Почему ты не отвечаешь на звонки? 📞</div>
+            <div class="options-area" id="options-3">
+                <button class="option-btn" onclick="checkChat(3, this, true)">Извини, я играю на компьютере.</button>
+                <button class="option-btn" onclick="checkChat(3, this, false)">Извини, я играю в компьютер.</button>
+            </div>
+            <div class="feedback-text" id="fb-3">Richtig! Das Gerät selbst erfordert „на“.</div>
+        </div>
+
+        <!-- 4 -->
+        <div class="chat-window" id="chat-4">
+            <div class="chat-header">Dialog 4</div>
+            <div class="chat-bubble bubble-friend">Скучно... Давай что-нибудь поделаем? ♟️</div>
+            <div class="options-area" id="options-4">
+                <button class="option-btn" onclick="checkChat(4, this, false)">Давай поиграем на шахматах.</button>
+                <button class="option-btn" onclick="checkChat(4, this, true)">Давай поиграем в шахматы.</button>
+            </div>
+            <div class="feedback-text" id="fb-4">Richtig! Brettspiele erfordern „в“.</div>
+        </div>
+
+        <!-- 5 -->
+        <div class="chat-window" id="chat-5">
+            <div class="chat-header">Dialog 5</div>
+            <div class="chat-bubble bubble-friend">Чем занимаются твои братья? 🎹🎸</div>
+            <div class="options-area" id="options-5">
+                <button class="option-btn" onclick="checkChat(5, this, true)">Они играют на пианино и на гитаре.</button>
+                <button class="option-btn" onclick="checkChat(5, this, false)">Они играют в пианино и гитару.</button>
+            </div>
+            <div class="feedback-text" id="fb-5">Richtig! Instrumente = „на“.</div>
+        </div>
+
+        <!-- 6 -->
+        <div class="chat-window" id="chat-6">
+            <div class="chat-header">Dialog 6</div>
+            <div class="chat-bubble bubble-friend">Твои родители дома? Что они делают?</div>
+            <div class="options-area" id="options-6">
+                <button class="option-btn" onclick="checkChat(6, this, true)">Да, они играют в карты с друзьями.</button>
+                <button class="option-btn" onclick="checkChat(6, this, false)">Да, они играют на картах с друзьями.</button>
+            </div>
+            <div class="feedback-text" id="fb-6">Richtig! Kartenspiele erfordern „в“.</div>
+        </div>
+
+        <!-- 7 -->
+        <div class="chat-window" id="chat-7">
+            <div class="chat-header">Dialog 7</div>
+            <div class="chat-bubble bubble-friend">Где дети? В саду так тихо. 🌳</div>
+            <div class="options-area" id="options-7">
+                <button class="option-btn" onclick="checkChat(7, this, false)">Они играют на прятках.</button>
+                <button class="option-btn" onclick="checkChat(7, this, true)">Они играют в прятки.</button>
+            </div>
+            <div class="feedback-text" id="fb-7">Richtig! „Igrat' w prjatki“ (Verstecken spielen) ist ein Spiel.</div>
+        </div>
+
+        <!-- 8 -->
+        <div class="chat-window" id="chat-8">
+            <div class="chat-header">Dialog 8</div>
+            <div class="chat-bubble bubble-friend">Ты любишь музыку? Умеешь на чём-то играть? 🎷</div>
+            <div class="options-area" id="options-8">
+                <button class="option-btn" onclick="checkChat(8, this, true)">Да, я немного играю на саксофоне.</button>
+                <button class="option-btn" onclick="checkChat(8, this, false)">Да, я немного играю в саксофон.</button>
+            </div>
+            <div class="feedback-text" id="fb-8">Richtig! Instrumente = „на“.</div>
+        </div>
+
+        <!-- 9 -->
+        <div class="chat-window" id="chat-9">
+            <div class="chat-header">Dialog 9</div>
+            <div class="chat-bubble bubble-friend">Ты почему не в метро? 🚇</div>
+            <div class="options-area" id="options-9">
+                <button class="option-btn" onclick="checkChat(9, this, true)">Я уже в поезде, играю на телефоне.</button>
+                <button class="option-btn" onclick="checkChat(9, this, false)">Я уже в поезде, играю в телефон.</button>
+            </div>
+            <div class="feedback-text" id="fb-9">Richtig! Das Handy ist ein Gerät, also „на“.</div>
+        </div>
+
+        <!-- 10 -->
+        <div class="chat-window" id="chat-10">
+            <div class="chat-header">Dialog 10</div>
+            <div class="chat-bubble bubble-friend">Мы завтра идём в парк. Во что поиграем? 🎾</div>
+            <div class="options-area" id="options-10">
+                <button class="option-btn" onclick="checkChat(10, this, false)">Мы можем поиграть на теннисе.</button>
+                <button class="option-btn" onclick="checkChat(10, this, true)">Мы можем поиграть в теннис.</button>
+            </div>
+            <div class="feedback-text" id="fb-10">Richtig! Sportarten erfordern „в“.</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="window.location.reload()">Simulation neustarten</button>
+    </div>
+</div>
+
+<script>
+    function checkChat(chatId, btn, isCorrect) {
+        const optionsArea = document.getElementById(`options-${chatId}`);
+        const feedback = document.getElementById(`fb-${chatId}`);
+        const buttons = optionsArea.querySelectorAll('.option-btn');
+
+        // Deaktiviere alle Buttons in diesem Chat
+        buttons.forEach(b => {
+            b.style.pointerEvents = 'none';
+        });
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            feedback.style.display = 'block';
+            feedback.style.color = 'var(--success-green)';
+            feedback.innerHTML = "Richtig! ✓";
+        } else {
+            btn.classList.add('wrong');
+            feedback.style.display = 'block';
+            feedback.style.color = 'var(--error-red)';
+            feedback.innerHTML = "Falsch. Achte auf die Regel (Instrument vs. Sport)!";
+            
+            // Markiere den richtigen Button nachträglich
+            buttons.forEach(b => {
+                // Ein einfacher Weg den richtigen Button zu finden:
+                if (b.onclick.toString().includes('true')) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+    }
+</script>
+
+</body>
+</html>

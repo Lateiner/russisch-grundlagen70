@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory: Verschwindende Paare</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --secondary-blue: #3498db;
+            --success-green: #27ae60;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+            --card-back-color: #34495e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            border-bottom: 3px solid var(--secondary-blue);
+            padding-bottom: 10px;
+        }
+
+        .instruction {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 5px solid var(--secondary-blue);
+        }
+
+        /* Game Board */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            perspective: 1000px;
+            min-height: 450px; /* Verhindert Springen des Layouts */
+        }
+
+        @media (max-width: 500px) {
+            .memory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Card Styles */
+        .memory-card {
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease-out;
+            cursor: pointer;
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Wenn das Paar gefunden wurde */
+        .memory-card.matched-hidden {
+            opacity: 0;
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 5px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card-front {
+            background-color: var(--card-back-color);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .card-back {
+            background-color: #ecf0f1;
+            border: 2px solid var(--secondary-blue);
+            color: var(--primary-dark);
+            transform: rotateY(180deg);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #e67e22; }
+        .btn-solve { background-color: var(--secondary-blue); }
+        .btn:active { transform: scale(0.95); }
+
+        .status-msg {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--success-green);
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Memory: Paare finden</h1>
+    
+    <div class="instruction">
+        <strong>Anleitung:</strong> Finde die zusammengehörenden Paare! Korrekte Paare leuchten kurz farbig auf und <strong>verschwinden</strong> dann vom Feld.
+    </div>
+
+    <div class="memory-grid" id="game-board"></div>
+
+    <div class="status-msg" id="status-msg"></div>
+
+    <div class="controls">
+        <button class="btn btn-reset" onclick="initGame()">Neu mischen</button>
+        <button class="btn btn-solve" onclick="solveGame()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const pairs = [
+        { a: "футбол", b: "в", color: "#FFD1DC" },      
+        { a: "гитара", b: "на", color: "#D1EAFF" },     
+        { a: "🎻", b: "скрипка", color: "#D1FFD7" },    
+        { a: "♟️", b: "шахматы", color: "#FFF4D1" },    
+        { a: "я", b: "играю", color: "#E0D1FF" },       
+        { a: "ты", b: "играешь", color: "#FFD1D1" },    
+        { a: "мы", b: "играем", color: "#D1FFF4" },     
+        { a: "они", b: "играют", color: "#F3FFD1" }     
+    ];
+
+    let flippedCards = [];
+    let lockBoard = false;
+    let matchesFound = 0;
+
+    function initGame() {
+        const board = document.getElementById('game-board');
+        const status = document.getElementById('status-msg');
+        board.innerHTML = '';
+        status.textContent = '';
+        flippedCards = [];
+        lockBoard = false;
+        matchesFound = 0;
+
+        let cardData = [];
+        pairs.forEach((pair, index) => {
+            cardData.push({ text: pair.a, pairId: index, color: pair.color });
+            cardData.push({ text: pair.b, pairId: index, color: pair.color });
+        });
+
+        cardData.sort(() => Math.random() - 0.5);
+
+        cardData.forEach((data) => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.pairId = data.pairId;
+            card.dataset.color = data.color;
+
+            card.innerHTML = `
+                <div class="card-face card-front">?</div>
+                <div class="card-face card-back">${data.text}</div>
+            `;
+
+            card.addEventListener('click', flipCard);
+            board.appendChild(card);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this === flippedCards[0]) return;
+        if (this.classList.contains('matched-hidden')) return;
+
+        this.classList.add('flipped');
+        flippedCards.push(this);
+
+        if (flippedCards.length === 2) {
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const isMatch = flippedCards[0].dataset.pairId === flippedCards[1].dataset.pairId;
+
+        if (isMatch) {
+            markMatched(flippedCards[0], flippedCards[1]);
+        } else {
+            unflipCards();
+        }
+    }
+
+    function markMatched(card1, card2) {
+        lockBoard = true;
+        const color = card1.dataset.color;
+        
+        // Farbe kurz zur Bestätigung zeigen
+        card1.querySelector('.card-back').style.backgroundColor = color;
+        card2.querySelector('.card-back').style.backgroundColor = color;
+        
+        matchesFound++;
+
+        // Verzögerung, damit man das Paar kurz sieht, bevor es verschwindet
+        setTimeout(() => {
+            card1.classList.add('matched-hidden');
+            card2.classList.add('matched-hidden');
+            flippedCards = [];
+            lockBoard = false;
+
+            if (matchesFound === pairs.length) {
+                document.getElementById('status-msg').textContent = "Fantastisch! Alle Paare gelöst! 🎉";
+            }
+        }, 800);
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+        setTimeout(() => {
+            flippedCards[0].classList.remove('flipped');
+            flippedCards[1].classList.remove('flipped');
+            flippedCards = [];
+            lockBoard = false;
+        }, 1000);
+    }
+
+    function solveGame() {
+        // Bei der Lösung lassen wir die Karten sichtbar, damit der Schüler lernen kann
+        const allCards = document.querySelectorAll('.memory-card');
+        allCards.forEach(card => {
+            const color = card.dataset.color;
+            card.querySelector('.card-back').style.backgroundColor = color;
+            card.classList.remove('matched-hidden'); // Falls schon welche weg waren, wieder zeigen
+            card.classList.add('flipped');
+            card.style.opacity = "1";
+        });
+        document.getElementById('status-msg').textContent = "Lösung wird angezeigt. Paare haben die gleiche Farbe.";
+    }
+
+    initGame();
+</script>
+
+</body>
+</html>
